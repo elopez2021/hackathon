@@ -18,12 +18,12 @@ def login(request):
             data = response.json()
             # Access the data fields
             field1 = data['success']
-            field2 = data['data']
+            #field2 = data['data']
             # Process the data as needed
             if field1 == False:
                 messages.error(request, data['error'])
             else:
-                if field2['isActive'] and field2['isAdmin'] == False and field2['isReception'] == False:
+                if data["data"]['isActive'] and data["data"]['isAdmin'] == False and data["data"]["isReception"] == False:
                     return redirect(reverse('home'))
         else:
             messages.error(request, 'Error en el servidor')
