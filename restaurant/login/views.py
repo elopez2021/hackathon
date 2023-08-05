@@ -5,14 +5,14 @@ from django.contrib import messages
 from django.urls import reverse
 import requests
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import login, logout
 
 from .decorators import unauthenticated_user
 
 
 # Create your views here.
-def login(request):
-    if request.method == 'POST':
+def login_view(request):
+    if request.method == 'POST' and request.user_isauthenticated == False:
         username = request.POST.get("username")
         password = request.POST.get("password")
         url = 'https://hackathon.voiceteamcall.com?token=dGVhbTEyOjkwcjcyMzh6eQ==' 
@@ -37,21 +37,23 @@ def login(request):
                         user.external_api_authenticated = True  # Flag to indicate the user was authenticated through the API
                         user.save()
 
-                        user = authenticate(request, username=username, password=password)
+                if user is not None and user.is_authenticated:
+                    login(request, user)
             
-                        if user is not None and user.is_authenticated:
-                            # User is authenticated, log them in
-                            login(request, user)
-                            return redirect('home')
-                        else:
-                            # Authentication failed, handle the error as needed
-                            messages.error(request, "Invalid username or password")
                 if data["data"]['isActive'] and data["data"]['isAdmin'] == False and data["data"]["isReception"] == False:
                     return redirect(reverse('home'))
         else:
             messages.error(request, 'Error en el servidor')
     return render(request, 'user/login.html')
 
+
 @unauthenticated_user
 def home(request):
     return render(request, 'user/dashboard.html')
+
+
+@unauthenticated_user
+def logout_view(request):
+    logout(request)
+    return redirect(reverse('login'))
+
