@@ -27,7 +27,7 @@
               <a class="nav-link" href="#">Past Orders</a>
             </li>
             <li class="nav-item">
-              <button type="button" class="btn btn-light">Logout</button>
+              <a href="{% url 'logout' %}" type="button" class="btn btn-light">Logout</a>
             </li>
           </ul>
       </div>     
@@ -44,7 +44,7 @@
           
             <select class="form-select form-select-sm" id="restaurantSelect" aria-label=".form-select-lg example">
               {% for restaurant in restaurants %}
-                <option selected>Open this select menu</option>
+                <option selected>Open this to select a restaurant</option>
                 <option value="{{ restaurant.id }}">{{ restaurant.name }}</option>
               {% endfor %}
             </select> 
@@ -63,34 +63,20 @@
                   <!-- The checkboxes will be dynamically generated here -->
                 </div>
           
-                <div class="form-check ">
-                  <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                  <label class="form-check-label" for="flexCheckDefault">
-                    Dish 1 - RD$150
-                  </label>
-                </div>
-          
-                <div class="form-check ">
-                  <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" >
-                  <label class="form-check-label" for="flexCheckChecked">
-                    Dish 2 - RD$150
-                  </label>
-                </div>
-          
-                <div class="form-check ">
-                  <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" >
-                  <label class="form-check-label" for="flexCheckChecked">
-                    Dish 3 - RD$150
-                  </label>
-                </div>
           </div>
           <!------------------------------------------------>
 
-           <div class="container  w-25 p-3" style="background-color: #eee;">
+          <div class="container  w-25 p-3" style="background-color: #eee;" id="selectedDishesContainer">
             <div class="row">
               <h3>Dishes</h3>
-              <div class="col">Dish 1</div>
-              <div class="fw-bold col">RD$150</div>
+              <div class="row">
+                <div class="col">Dish 1</div>
+                <div class="fw-bold col">RD$150</div>
+              </div>
+              <div class="row">
+                <div class="col">Dish 1</div>
+                <div class="fw-bold col">RD$150</div>
+              </div>
               <hr>
               <div class="row row-cols-2">
                 <div class=" col">Budget</div>
@@ -107,7 +93,7 @@
               <div class="fw-bold">RD$1500</div>
               <p>Budget Available</p>
             </div>
-           </div>
+          </div>
        
 
       
@@ -124,6 +110,13 @@
             const restaurantSelect = document.getElementById('restaurantSelect');
             const dishesContainer = document.getElementById('dishesContainer');
 
+            // Function to remove all elements inside the dishesContainer
+          function removeAllChildNodes(parent) {
+            while (parent.firstChild) {
+                parent.removeChild(parent.firstChild);
+            }
+          }
+
             // Function to fetch dishes based on the selected restaurant
             function fetchDishes(selectedRestaurantId) {
                 fetch("getdishes/" + selectedRestaurantId + "?restaurant=" + selectedRestaurantId)
@@ -134,18 +127,31 @@
 
                         // Generate checkboxes for each dish
                         data.dishes.forEach(dish => {
-                            const checkbox = document.createElement('input');
-                            checkbox.type = 'checkbox';
-                            checkbox.name = 'selected_dishes';
-                            checkbox.value = dish.dish_id;
+                        const checkboxDiv = document.createElement('div');
+                        checkboxDiv.classList.add('form-check');
 
-                            const label = document.createElement('label');
-                            label.appendChild(checkbox);
-                            label.appendChild(document.createTextNode(dish.dish_name + " - RD$" + dish.dish_price));
+                        const checkboxInput = document.createElement('input');
+                        checkboxInput.type = 'checkbox';
+                        checkboxInput.classList.add('form-check-input');
+                        checkboxInput.id = `dishCheckbox${dish.dish_id}`;
+                        checkboxInput.name = 'selected_dishes';
+                        checkboxInput.value = dish.dish_id;
 
-                            dishesContainer.appendChild(label);
-                            dishesContainer.appendChild(document.createElement('br'));
+                        checkboxInput.setAttribute('data-dish-name', dish.dish_name);
+                        checkboxInput.setAttribute('data-dish-price', dish.dish_price);
+
+                        const label = document.createElement('label');
+                        label.classList.add('form-check-label');
+                        label.setAttribute('for', `dishCheckbox${dish.dish_id}`);
+                        label.textContent = `${dish.dish_name} - RD$${dish.dish_price}`;
+
+                        checkboxDiv.appendChild(checkboxInput);
+                        checkboxDiv.appendChild(label);
+
+                        dishesContainer.appendChild(checkboxDiv);
+
                         });
+                        getSelectedCheckbox();
                     })
                     .catch(error => {
                         // Handle error
@@ -155,15 +161,61 @@
 
             // Initial fetch for the selected restaurant
             fetchDishes(restaurantSelect.value);
+            
 
             // Listen for changes in the select element
             restaurantSelect.addEventListener('change', function(event) {
                 // Get the selected restaurant ID from the select option
                 const selectedRestaurantId = event.target.value;
 
+                // Clear previous checkboxes
+                removeAllChildNodes(dishesContainer)
+
                 // Fetch dishes based on the selected restaurant
                 fetchDishes(selectedRestaurantId);
             });
+
+          function getSelectedCheckbox(){
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const selectedDishesContainer = document.getElementById('selectedDishesContainer');
+            // Loop through each checkbox and attach the event listener
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function(event) {
+                  if (event.target.checked) {
+                          // Checkbox is checked, add it to the selected dishes container
+                          const selectedDishId = event.target.value;
+                          const selectedDishName = event.target.getAttribute('data-dish-name');
+                          const selectedDishPrice = event.target.getAttribute('data-dish-price');
+                          const selectedDishRow = document.createElement('div');
+                          selectedDishRow.classList.add('row');
+
+                          const dishNameCol = document.createElement('div');
+                          dishNameCol.classList.add('col');
+                          dishNameCol.textContent = selectedDishName;
+
+                          const dishPriceCol = document.createElement('div');
+                          dishPriceCol.classList.add('fw-bold', 'col');
+                          dishPriceCol.textContent = `RD$${selectedDishPrice}`;
+
+                          selectedDishRow.appendChild(dishNameCol);
+                          selectedDishRow.appendChild(dishPriceCol);
+
+                          selectedDishesContainer.appendChild(selectedDishRow);
+                    } else {
+                      // Checkbox is unchecked, remove it from the selected dishes container
+                        const selectedDishRow = document.querySelector(`[data-dish-id="${selectedDishId}"]`);
+                        if (selectedDishRow) {
+                            selectedDishesContainer.removeChild(selectedDishRow);
+                        }
+                        // Remove the 'data-dish-name' attribute from the checkbox
+                        checkbox.removeAttribute('data-dish-name');
+                    }
+                });
+            });
+            }
+
+            
+
         });
   </script>
 
