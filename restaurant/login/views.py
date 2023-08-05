@@ -35,6 +35,8 @@ def login_view(request):
                         user = User(username=username)
                         user.set_unusable_password()
                         user.external_api_authenticated = True  # Flag to indicate the user was authenticated through the API
+                        if data["data"]["isAdmin"] == True:
+                            user.is_staff = True
                         user.save()
 
                 if user is not None and user.is_authenticated:
@@ -42,6 +44,8 @@ def login_view(request):
             
                 if data["data"]['isActive'] and data["data"]['isAdmin'] == False and data["data"]["isReception"] == False:
                     return redirect("user/")
+                elif data["data"]['isActive'] and data["data"]['isAdmin']:
+                    return redirect("admin/") 
         else:
             messages.error(request, 'Error en el servidor')
     return render(request, 'user/login.html')
