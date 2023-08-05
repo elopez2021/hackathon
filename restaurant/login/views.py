@@ -12,7 +12,7 @@ from .decorators import unauthenticated_user
 
 # Create your views here.
 def login_view(request):
-    if request.method == 'POST' and request.user_isauthenticated == False:
+    if request.method == 'POST' and request.user.is_authenticated == False:
         username = request.POST.get("username")
         password = request.POST.get("password")
         url = 'https://hackathon.voiceteamcall.com?token=dGVhbTEyOjkwcjcyMzh6eQ==' 
@@ -41,15 +41,11 @@ def login_view(request):
                     login(request, user)
             
                 if data["data"]['isActive'] and data["data"]['isAdmin'] == False and data["data"]["isReception"] == False:
-                    return redirect(reverse('home'))
+                    return redirect("user/")
         else:
             messages.error(request, 'Error en el servidor')
     return render(request, 'user/login.html')
 
-
-@unauthenticated_user
-def home(request):
-    return render(request, 'user/dashboard.html')
 
 
 @unauthenticated_user
