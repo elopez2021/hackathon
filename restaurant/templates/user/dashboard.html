@@ -13,5 +13,71 @@
     {% else %}
     <p>User is not authenticated</p>
     {% endif %}
+
+    {% for restaurant in restaurants %}
+
+    <form id="restaurantForm" action="" method="GET">
+        <label for="restaurantSelect">Select a restaurant:</label>
+        <select id="restaurantSelect" name="restaurant">
+            {% for restaurant in restaurants %}
+                <option value="{{ restaurant.id }}">{{ restaurant.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Submit</button>
+    </form>
+
+    {% endfor %}
+
+    <div id="dishesContainer">
+        <!-- The checkboxes will be dynamically generated here -->
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const restaurantForm = document.getElementById('restaurantForm');
+            const restaurantSelect = document.getElementById('restaurantSelect');
+            const dishesContainer = document.getElementById('dishesContainer');
+
+            restaurantForm.addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent default form submission
+
+                // Get the selected restaurant ID from the select option
+                const selectedRestaurantId = restaurantSelect.value;
+
+                // Make a Fetch API request to retrieve the dishes of the selected restaurant
+                fetch("getdishes/"+selectedRestaurantId+"?restaurant="+selectedRestaurantId) // Use the correct URL pattern here
+                    .then(response => response.json())
+                    .then(data => {
+                        // Clear previous checkboxes
+                        dishesContainer.innerHTML = '';
+
+                        // Generate checkboxes for each dish
+                        data.dishes.forEach(dish => {
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.name = 'selected_dishes';
+                            checkbox.value = dish.dish_id;
+
+                            const label = document.createElement('label');
+                            label.appendChild(checkbox);
+                            label.appendChild(document.createTextNode(dish.dish_name));
+
+                            dishesContainer.appendChild(label);
+                            dishesContainer.appendChild(document.createElement('br'));
+                        });
+                    })
+                    .catch(error => {
+                        // Handle error
+                        console.error('Error:', error);
+                    });
+            });
+
+           
+        });
+    </script>
+    
+
+
+
 </body>
 </html>

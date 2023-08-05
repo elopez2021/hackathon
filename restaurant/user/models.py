@@ -1,4 +1,5 @@
 from django.db import models
+from restaurantapp.models import Dish
 
 # Create your models here.
 
@@ -10,18 +11,6 @@ status_choice=(
         ('shipped','Transportado'),
         ('delivered','Entregado'),
 )
-
-
-class Dish(models.Model):
-    dish_id = models.AutoField(primary_key=True)
-    dish_name = models.CharField(max_length=100)
-    dish_price = models.DecimalField(max_digits=10, decimal_places=2)
-    dish_description = models.TextField()
-    dish_category = models.CharField(max_length=100)
-    
-    def __str__(self):
-        return self.dish_id
-
 
 class Order(models.Model):
     order_id = models.AutoField(primary_key=True)
