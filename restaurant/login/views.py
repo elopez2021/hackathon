@@ -1,7 +1,8 @@
 import json
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.contrib import messages
+from django.urls import reverse
 import requests
 
 
@@ -17,12 +18,16 @@ def login(request):
             data = response.json()
             # Access the data fields
             field1 = data['success']
-            #field2 = data['data']
+            field2 = data['data']
             # Process the data as needed
             if field1 == False:
                 messages.error(request, data['error'])
             else:
-                messages.success(request, data['data']["isAdmin"])
+                if field2['isActive'] and field2['isAdmin'] == False and field2['isReception'] == False:
+                    return redirect(reverse('home'))
         else:
             messages.error(request, 'Error en el servidor')
     return render(request, 'user/login.html')
+
+def home(request):
+    return render(request, 'user/dashboard.html')
