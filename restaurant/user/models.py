@@ -23,7 +23,7 @@ class Order(models.Model):
     order_status=models.CharField(choices=status_choice,default='process',max_length=150)
 
     def __str__(self):
-        return self.order_id
+        return str(self.order_id)
 
 class CartOrderItems(models.Model):
     order=models.ForeignKey(Order,on_delete=models.CASCADE, related_name="cart_items")
@@ -36,4 +36,4 @@ class CartOrderItems(models.Model):
         verbose_name_plural='Order Items'
     
     def __str__(self): 
-        return self.order.order_id
+        return str(self.order.order_id)

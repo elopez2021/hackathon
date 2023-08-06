@@ -47,6 +47,7 @@
                 <th scope="col">Place</th>
                 <th scope="col">Order</th>
                 <th scope="col">Charged</th>
+                <th scope="col">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -59,34 +60,18 @@
                  <td>{{ dish.dish__name }}</td>
                  <td>{{ dish.dish__price }}</td>
                 {% endfor %}
-                <td>Real home</td>
-                <td>Dish of the day</td>
                 <td>
-                    Total:RD$150
+                    Total:RD${{ order.order_total|add:75 }}
                     <br>
                     Budget:RD$75
                     <br>
-                    Paid:RD$50
+                    Paid:RD${{ order.order_total }}
                 </td>
+                <td>{{ order.order_status }}</td>
               </tr>
               {% endfor %}	
 
-              <tr>
-                <th scope="row">2</th>
-                <td>12/7/2023</td>
-                <td>1234</td>
-                <td>Real home</td>
-                <td>Dish of the day</td>
-                <td>
-                    Total:RD$150
-                    <br>
-                    Budget:RD$75
-                    <br>
-                    Paid:RD$50
-                </td>
-              </tr>
-
-             
+              
               
             </tbody>
           </table>

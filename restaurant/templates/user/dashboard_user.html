@@ -78,9 +78,10 @@
               <div class="col" data-pay="0" id="youpayContainer">RD$0.00</div>
               </div>
 
-              <form action="" method="POST">
+              <form action="{% url 'create-order' %}" method="POST">
+                {% csrf_token %}
                 <input type="hidden" name="selected_dishes" id="selectedDishesInput" />
-                <button type="button" class="btn btn-outline-secondary">Place Order</button>
+                <button type="submit" class="btn btn-outline-secondary">Place Order</button>
               </form>
              
             </div>
