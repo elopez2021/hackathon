@@ -1,15 +1,16 @@
 from django.db import models
 from restaurantapp.models import Dish
+from django.contrib.auth.models import User
 
 # Create your models here.
 
 
 status_choice=(
-        ('process','En Proceso'),
-        ('accepted','Aceptado'),
-        ('packed','Empacado'),
-        ('shipped','Transportado'),
-        ('delivered','Entregado'),
+        ('process','In Process'),
+        ('accepted','Accepted'),
+        ('packed','Packed'),
+        ('shipped','Transported'),
+        ('delivered','Delivered'),
 )
 
 class Order(models.Model):
@@ -17,7 +18,7 @@ class Order(models.Model):
     order_date = models.DateTimeField(auto_now_add=True)
     order_total = models.DecimalField(max_digits=10, decimal_places=2)
     order_status = models.CharField(max_length=100)
-    customer_id = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     address = models.CharField(max_length=255, null=True)
     order_status=models.CharField(choices=status_choice,default='process',max_length=150)
 
@@ -25,7 +26,7 @@ class Order(models.Model):
         return self.order_id
 
 class CartOrderItems(models.Model):
-    order=models.ForeignKey(Order,on_delete=models.CASCADE)
+    order=models.ForeignKey(Order,on_delete=models.CASCADE, related_name="cart_items")
     dish=models.ForeignKey(Dish, on_delete=models.CASCADE)
     qty=models.IntegerField()
     price=models.FloatField()

@@ -24,7 +24,7 @@
 
           <ul class="navbar-nav">
             <li class="nav-item">
-              <a class="nav-link" href="#">Past Orders</a>
+              <a class="nav-link" href="{% url 'previous_orders' %}">Past Orders</a>
             </li>
             <li class="nav-item">
               <a href="{% url 'logout' %}" type="button" class="btn btn-light">Logout</a>
@@ -57,7 +57,7 @@
             <!--checkbox-->
 
               <hr>
-              <div class="container">
+        <div class="container">
                 <h2>Menu:</h2>
                 <div id="dishesContainer">
                   <!-- The checkboxes will be dynamically generated here -->
@@ -65,26 +65,24 @@
           
           </div>
           <!------------------------------------------------>
-
+          <div class="container  w-25 p-3" style="background-color: #eee;">
+            <h3>Dishes</h3>
+          </div>
           <div class="container  w-25 p-3" style="background-color: #eee;" id="selectedDishesContainer">
             <div class="row">
-              <h3>Dishes</h3>
-              <div class="row">
-                <div class="col">Dish 1</div>
-                <div class="fw-bold col">RD$150</div>
-              </div>
-              <div class="row">
-                <div class="col">Dish 1</div>
-                <div class="fw-bold col">RD$150</div>
-              </div>
               <hr>
               <div class="row row-cols-2">
                 <div class=" col">Budget</div>
-                <div class=" col">RD$75</div>
+                <div class="col" data-price="0" id="budgetPriceContainer">RD$0.00</div>
               <div class=" col fw-bold">You pay:</div>
-              <div class="col">RD$75</div>
+              <div class="col" data-pay="0" id="youpayContainer">RD$0.00</div>
               </div>
-              <button type="button" class="btn btn-outline-secondary">Place Order</button>
+
+              <form action="" method="POST">
+                <input type="hidden" name="selected_dishes" id="selectedDishesInput" />
+                <button type="button" class="btn btn-outline-secondary">Place Order</button>
+              </form>
+             
             </div>
            </div>
            <!--Budget capital-->
@@ -112,9 +110,9 @@
 
             // Function to remove all elements inside the dishesContainer
           function removeAllChildNodes(parent) {
-            while (parent.firstChild) {
-                parent.removeChild(parent.firstChild);
-            }
+              while (parent.firstChild) {
+                  parent.removeChild(parent.firstChild);
+              }
           }
 
             // Function to fetch dishes based on the selected restaurant
@@ -127,28 +125,29 @@
 
                         // Generate checkboxes for each dish
                         data.dishes.forEach(dish => {
-                        const checkboxDiv = document.createElement('div');
-                        checkboxDiv.classList.add('form-check');
+                          const checkboxDiv = document.createElement('div');
+                          checkboxDiv.classList.add('form-check');
 
-                        const checkboxInput = document.createElement('input');
-                        checkboxInput.type = 'checkbox';
-                        checkboxInput.classList.add('form-check-input');
-                        checkboxInput.id = `dishCheckbox${dish.dish_id}`;
-                        checkboxInput.name = 'selected_dishes';
-                        checkboxInput.value = dish.dish_id;
+                          const checkboxInput = document.createElement('input');
+                          checkboxInput.type = 'checkbox';
+                          checkboxInput.classList.add('form-check-input');
+                          checkboxInput.id = `dishCheckbox${dish.dish_id}`;
+                          checkboxInput.name = 'selected_dishes';
+                          checkboxInput.value = dish.dish_id;
 
-                        checkboxInput.setAttribute('data-dish-name', dish.dish_name);
-                        checkboxInput.setAttribute('data-dish-price', dish.dish_price);
+                          checkboxInput.setAttribute('data-dish-name', dish.dish_name);
+                          checkboxInput.setAttribute('data-dish-price', dish.dish_price);
+                          checkboxInput.setAttribute('data-dish-id', dish.dish_id);
 
-                        const label = document.createElement('label');
-                        label.classList.add('form-check-label');
-                        label.setAttribute('for', `dishCheckbox${dish.dish_id}`);
-                        label.textContent = `${dish.dish_name} - RD$${dish.dish_price}`;
+                          const label = document.createElement('label');
+                          label.classList.add('form-check-label');
+                          label.setAttribute('for', `dishCheckbox${dish.dish_id}`);
+                          label.textContent = `${dish.dish_name} - RD$${dish.dish_price}`;
 
-                        checkboxDiv.appendChild(checkboxInput);
-                        checkboxDiv.appendChild(label);
+                          checkboxDiv.appendChild(checkboxInput);
+                          checkboxDiv.appendChild(label);
 
-                        dishesContainer.appendChild(checkboxDiv);
+                          dishesContainer.appendChild(checkboxDiv);
 
                         });
                         getSelectedCheckbox();
@@ -178,14 +177,16 @@
           function getSelectedCheckbox(){
             const checkboxes = document.querySelectorAll('input[type="checkbox"]');
             const selectedDishesContainer = document.getElementById('selectedDishesContainer');
+            const selectedDishes = []; // Array to store selected dishes
+
             // Loop through each checkbox and attach the event listener
-            checkboxes.forEach(checkbox => {
+              checkboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function(event) {
                   if (event.target.checked) {
                           // Checkbox is checked, add it to the selected dishes container
-                          const selectedDishId = event.target.value;
                           const selectedDishName = event.target.getAttribute('data-dish-name');
                           const selectedDishPrice = event.target.getAttribute('data-dish-price');
+                          const selectedDishId = event.target.getAttribute('data-dish-id');
                           const selectedDishRow = document.createElement('div');
                           selectedDishRow.classList.add('row');
 
@@ -200,19 +201,42 @@
                           selectedDishRow.appendChild(dishNameCol);
                           selectedDishRow.appendChild(dishPriceCol);
 
-                          selectedDishesContainer.appendChild(selectedDishRow);
+                          selectedDishesContainer.prepend(selectedDishRow);
+
+                          // Store the selected dish data in the array
+                          selectedDishes.push({
+                              id: selectedDishId,
+                              name: selectedDishName,
+                              price: selectedDishPrice
+                          });
+
+                          var totalPrice = parseFloat(document.getElementById("budgetPriceContainer").getAttribute("data-price"));
+                          totalPrice += parseFloat(selectedDishPrice);
+
+                          
+                          var youpayBudget = parseFloat(document.getElementById("youpayContainer").getAttribute("data-pay"));
+                          youpayBudget = parseFloat(totalPrice - 75);
+
                     } else {
                       // Checkbox is unchecked, remove it from the selected dishes container
-                        const selectedDishRow = document.querySelector(`[data-dish-id="${selectedDishId}"]`);
-                        if (selectedDishRow) {
-                            selectedDishesContainer.removeChild(selectedDishRow);
-                        }
-                        // Remove the 'data-dish-name' attribute from the checkbox
-                        checkbox.removeAttribute('data-dish-name');
+                        const selectedDishRow = document.getElementById("dishCheckbox"+selectedDishId);
+                        selectedDishRow.remove();
                     }
+
+                    const budgetPriceContainer = document.getElementById('budgetPriceContainer');
+                    budgetPriceContainer.textContent = `RD$${totalPrice.toFixed(2)}`;
+                    budgetPriceContainer.setAttribute("data-price",totalPrice);
+
+                    const youpayContainer = document.getElementById('youpayContainer');
+                    youpayContainer.textContent = `RD$${youpayBudget.toFixed(2)}`;
+                    youpayContainer.setAttribute("data-pay",youpayBudget); 
+
+                    // Update the hidden input value with the updated JSON string
+                    const hiddenInput = document.getElementById('selectedDishesInput');
+                    hiddenInput.value = JSON.stringify(selectedDishes);
                 });
             });
-            }
+        }
 
             
 
